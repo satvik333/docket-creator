@@ -7,7 +7,9 @@ const docketSchema = new mongoose.Schema({
   hoursWorked: Number,
   ratePerHour: Number,
   poNumber: String,
-  supplier: String,
+  supplierName: String,
+  description: String,
+  purchaseOrder: String
 });
 
 const Docket = mongoose.model('Docket', docketSchema);

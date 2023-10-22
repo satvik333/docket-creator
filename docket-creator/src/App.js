@@ -19,39 +19,45 @@ function App() {
   const [showForm, setShowForm] = useState(false);
   const [dockets, setDockets] = useState([]);
 
-  useEffect(() => {
-    async function fetchData() {
-      try {
-        // Fetch dockets
-        const docketResponse = await fetch('http://localhost:4000/getdockets');
-        const docketData = await docketResponse.json();
+  const fetchData = async () => {
+    try {
+      // Fetch dockets
+      const docketResponse = await fetchDockets();
+      setDockets(docketResponse.dockets);
 
-        setDockets(docketData.dockets);
+      // Fetch suppliers
+      const data = await fetchFileData();
+      if (data && Array.isArray(data)) {
+        data.forEach((ele, index) => {
+          ele.index = index;
+        });
+        setJsonData(data);
 
-        // Fetch suppliers
-        const response = await fetch('http://localhost:4000/readFile');
-        const data = await response.json();
+        const uniqueSuppliers = [...new Set(data.map((item) => item.supplier))];
 
-        if (data && Array.isArray(data)) {
-          data.forEach((ele, index) => {
-            ele.index = index;
-          });
-          setJsonData(data);
+        const supplierOptions = uniqueSuppliers.map((name, index) => ({
+          supplierNumber: index,
+          supplierName: name,
+        }));
 
-          const uniqueSuppliers = [...new Set(data.map((item) => item.supplier))];
-
-          const supplierOptions = uniqueSuppliers.map((name, index) => ({
-            supplierNumber: index,
-            supplierName: name,
-          }));
-
-          setSupplierOptions(supplierOptions);
-        }
-      } catch (error) {
-        console.error('Error fetching data:', error);
+        setSupplierOptions(supplierOptions);
       }
+    } catch (error) {
+      console.error('Error fetching data:', error);
     }
+  };
 
+  const fetchDockets = async () => {
+    const response = await fetch('http://localhost:4000/getdockets');
+    return await response.json();
+  };
+
+  const fetchFileData = async () => {
+    const response = await fetch('http://localhost:4000/readFile');
+    return await response.json();
+  };
+
+  useEffect(() => {
     fetchData();
   }, []);
 
@@ -83,7 +89,6 @@ function App() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      // Your POST request to /adddocket
       const response = await fetch('http://localhost:4000/adddocket', {
         method: 'POST',
         headers: {
@@ -92,18 +97,28 @@ function App() {
         body: JSON.stringify(formData),
       });
 
-      // Check if the request was successful (status code 2xx)
       if (response.ok) {
-        // Handle success, e.g., show a success message or redirect
         console.log('Docket created successfully');
       } else {
-        // Handle error, e.g., show an error message
         console.error('Failed to create docket:', response.statusText);
       }
     } catch (error) {
       console.error('Error creating docket:', error);
     }
     setShowForm(false);
+    setFormData({
+      name: '',
+      startTime: '',
+      endTime: '',
+      hoursWorked: '',
+      ratePerHour: '',
+      supplierName: '',
+      purchaseOrder: '',
+      description: ''
+    });
+
+    const docketResponse = await fetchDockets();
+    setDockets(docketResponse.dockets);
   };
 
   const toggleForm = () => {
@@ -116,84 +131,84 @@ function App() {
 
   return (
     <div>
-    <div className="app-container">
-      <button onClick={toggleForm}>Open Form</button>
-      {showForm && (
-        <div className="popup-form">
-          <form onSubmit={handleSubmit}>
-            <label>
-              Name:
-              <input type="text" name="name" value={formData.name} onChange={handleChange} />
-            </label>
-            <br />
-            <label>
-              Start Time:
-              <input type="date" name="startTime" value={formData.startTime} onChange={handleChange} />
-            </label>
-            <br />
-            <label>
-              End Time:
-              <input type="date" name="endTime" value={formData.endTime} onChange={handleChange} />
-            </label>
-            <br />
-            <label>
-              No of Hours Worked:
-              <input type="text" name="hoursWorked" value={formData.hoursWorked} onChange={handleChange} />
-            </label>
-            <br />
-            <label>
-              Rate per Hour:
-              <input type="text" name="ratePerHour" value={formData.ratePerHour} onChange={handleChange} />
-            </label>
-            <br />
-            <label>
-              Supplier Name:
-              <select
-                name="supplierName"
-                value={formData.supplierName}
-                onChange={handleChange}
-              >
-                <option value="" disabled>Select Supplier</option>
-                {supplierOptions.map((option) => (
-                  <option key={option.supplierNumber} value={option.supplierName}>
-                    {option.supplierName}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <br/>
-            <label>
-              Purchase Order:
-              <select
-                name="purchaseOrder"
-                value={formData.purchaseOrder}
-                onChange={handleChange}
-              >
-                <option value="" disabled>Select Purchase Order</option>
-                {purchaseOrderOptions.map((option) => (
-                  <option key={option.index} value={option.index}>
-                    {option.poNumber}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <br />
-            {formData.description && (
-              <h4>
-                PO Number: {formData.purchaseOrder}
-              </h4>
-            )}
-            {formData.description && (
-              <h4>
-                Description: {formData.description}
-              </h4>
-            )}
-            <button type="submit">Submit</button>
-            <button onClick={closeForm}>Close</button>
-          </form>
-        </div>
-      )}
-    </div>
+      <div className="app-container">
+        <button onClick={toggleForm}>Add Docket</button>
+        {showForm && (
+          <div className="popup-form">
+            <form onSubmit={handleSubmit}>
+              <label>
+                Name:
+                <input type="text" name="name" value={formData.name} onChange={handleChange} />
+              </label>
+              <br />
+              <label>
+                Start Time:
+                <input type="date" name="startTime" value={formData.startTime} onChange={handleChange} />
+              </label>
+              <br />
+              <label>
+                End Time:
+                <input type="date" name="endTime" value={formData.endTime} onChange={handleChange} />
+              </label>
+              <br />
+              <label>
+                No of Hours Worked:
+                <input type="text" name="hoursWorked" value={formData.hoursWorked} onChange={handleChange} />
+              </label>
+              <br />
+              <label>
+                Rate per Hour:
+                <input type="text" name="ratePerHour" value={formData.ratePerHour} onChange={handleChange} />
+              </label>
+              <br />
+              <label>
+                Supplier Name:
+                <select
+                  name="supplierName"
+                  value={formData.supplierName}
+                  onChange={handleChange}
+                >
+                  <option value="" disabled>Select Supplier</option>
+                  {supplierOptions.map((option) => (
+                    <option key={option.supplierNumber} value={option.supplierName}>
+                      {option.supplierName}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <br/>
+              <label>
+                Purchase Order:
+                <select
+                  name="purchaseOrder"
+                  value={formData.purchaseOrder}
+                  onChange={handleChange}
+                >
+                  <option value="" disabled>Select Purchase Order</option>
+                  {purchaseOrderOptions.map((option) => (
+                    <option key={option.index} value={option.index}>
+                      {option.poNumber}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <br />
+              {formData.description && (
+                <h4>
+                  PO Number: {formData.purchaseOrder}
+                </h4>
+              )}
+              {formData.description && (
+                <h4>
+                  Description: {formData.description}
+                </h4>
+              )}
+              <button type="submit">Submit</button>
+              <button onClick={closeForm}>Close</button>
+            </form>
+          </div>
+        )}
+      </div>
 
     <div className="dockets-container">
         <h2>Dockets</h2>

@@ -3,7 +3,10 @@ const fs = require('fs');
 const XLSX = require('xlsx');
 const cors = require('cors');
 const mongoose = require('mongoose');
-const { createDocket, getDockets } = require('./controller/docketController');
+const {
+  createDocket,
+  getDockets
+} = require('./controller/docketController');
 const bodyParser = require('body-parser');
 
 const app = express();
@@ -28,7 +31,7 @@ app.get('/getdockets', async (req, res) => {
   return await getDockets(req, res);
 });
 
-app.get('/readFile', async (req, res) => {
+const readFile = async () => {
   try {
     const data = fs.readFileSync('./export29913.xlsx');
     const workbook = XLSX.read(data, {
@@ -67,9 +70,18 @@ app.get('/readFile', async (req, res) => {
       }
     }
 
-    res.json(dataObjects);
+    return dataObjects;
   } catch (error) {
     console.error('Error reading file:', error);
+    throw error;
+  }
+};
+
+app.get('/readFile', async (req, res) => {
+  try {
+    const dataObjects = await readFile();
+    res.json(dataObjects);
+  } catch (error) {
     res.status(500).send('Internal Server Error');
   }
 });
