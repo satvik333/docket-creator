@@ -1,0 +1,58 @@
+/* App.css */
+
+.app-container {
+  margin: 20px;
+}
+
+.popup-form {
+  background-color: #fff;
+  border: 1px solid #ccc;
+  padding: 20px;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.popup-form label {
+  display: block;
+  margin-bottom: 10px;
+}
+
+.popup-form select,
+.popup-form input {
+  width: 100%;
+  padding: 8px;
+  margin-bottom: 15px;
+  box-sizing: border-box;
+}
+
+.popup-form button {
+  background-color: #4caf50;
+  color: #fff;
+  padding: 10px 15px;
+  border: none;
+  cursor: pointer;
+}
+
+.dockets-container {
+  margin-top: 30px;
+}
+
+.dockets-container table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 15px;
+}
+
+.dockets-container th, .dockets-container td {
+  border: 1px solid #ddd;
+  padding: 8px;
+  text-align: left;
+}
+
+.dockets-container th {
+  background-color: #4caf50;
+  color: white;
+}
+
